@@ -2,33 +2,115 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rice Leaf Disease Detection</title>
+    <title>Smart Agriculture: A Hybrid AI System for Early Detection of Rice Leaf Disease</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f6fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { background: #fff; padding: 40px 60px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 400px; }
-        h1 { margin-bottom: 30px; color: #2f3640; }
-        input[type="file"] { display: none; }
-        label { display: inline-block; padding: 15px 25px; background: #44bd32; color: #fff; border-radius: 10px; cursor: pointer; transition: background 0.3s ease; margin-bottom: 20px; }
-        label:hover { background: #4cd137; }
-        input[type="submit"] { padding: 15px 40px; background: #273c75; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; transition: background 0.3s ease; }
-        input[type="submit"]:hover { background: #4876ff; }
-        p.note { margin-top: 20px; font-size: 14px; color: #718093; }
-        #file-name { margin-top: 10px; font-size: 14px; color: #2f3640; }
-        #preview { margin-top: 15px; max-width: 100%; border-radius: 10px; display: none; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 50px 60px;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            text-align: center;
+            width: 420px;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+            color: #2e7d32;
+            font-size: 22px;
+            line-height: 1.4;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        label {
+            display: inline-block;
+            padding: 14px 30px;
+            background: #4caf50;
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 20px;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        label:hover {
+            background: #43a047;
+        }
+
+        input[type="submit"] {
+            padding: 14px 35px;
+            background: #1e88e5;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+
+        input[type="submit"]:hover {
+            background: #1565c0;
+        }
+
+        p.note {
+            margin-top: 18px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        #file-name {
+            margin-top: 12px;
+            font-size: 14px;
+            color: #2f3640;
+        }
+
+        #preview {
+            margin-top: 15px;
+            max-width: 100%;
+            border-radius: 10px;
+            display: none;
+            border: 1px solid #ddd;
+        }
+
+        footer {
+            margin-top: 25px;
+            font-size: 13px;
+            color: #777;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Rice Leaf Disease Detection</h1>
+        <h1>Smart Agriculture:<br>A Hybrid AI System for Early Detection of Rice Leaf Disease</h1>
+
         <form action="/predict" method="POST" enctype="multipart/form-data">
-            <label for="file">Choose Leaf Image</label>
+            <label for="file">📁 Choose Leaf Image</label>
             <input type="file" id="file" name="file" accept="image/*" required>
+
             <div id="file-name"></div>
             <img id="preview" alt="Image Preview">
-            <br>
-            <input type="submit" value="Predict">
+            <br><br>
+
+            <input type="submit" value="🔍 Analyze Disease">
         </form>
+
         <p class="note">Supported formats: JPEG, PNG</p>
+        <footer>© 2025 Smart Agriculture Research | All Rights Reserved</footer>
     </div>
 
     <script>
@@ -40,7 +122,6 @@
             const file = this.files[0];
             if (file) {
                 fileNameDisplay.textContent = `Selected file: ${file.name}`;
-
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     preview.src = e.target.result;
