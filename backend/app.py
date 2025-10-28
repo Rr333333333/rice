@@ -26,7 +26,7 @@ if not os.path.exists(MODEL_PATH):
     print("✅ Model downloaded successfully!")
 
 # -----------------------------
-# Disease classes and reasons
+# Disease classes and details
 # -----------------------------
 class_names = [
     'Bacterial Blight', 'Brown Spot', 'Healthy',
@@ -34,78 +34,138 @@ class_names = [
 ]
 
 disease_reasons = {
-    'Bacterial Blight': 'Caused by bacteria; leads to water-soaked lesions.<br>Solution: Use disease-resistant varieties, apply copper-based fungicides.',
-    'Brown Spot': 'Caused by fungus; appears as brown spots.<br>Solution: Maintain proper fertilization and remove infected leaves.',
-    'Healthy': 'No disease detected.<br>Solution: Maintain field hygiene and monitor regularly.',
-    'Leaf Blast': 'Caused by fungus; diamond-shaped lesions.<br>Solution: Proper spacing, nitrogen management, and fungicide application.',
-    'Leaf Scald': 'Caused by fungus; pale lesions along edges.<br>Solution: Crop rotation, balanced fertilization, and fungicides.',
-    'Narrow Brown Spot': 'Caused by fungus; narrow brown lesions.<br>Solution: Maintain soil moisture, avoid excess nitrogen.'
+    'Bacterial Blight': 'Caused by bacteria; leads to water-soaked lesions.<br><b>Solution:</b> Use disease-resistant varieties, apply copper-based fungicides.',
+    'Brown Spot': 'Caused by fungus; appears as brown spots.<br><b>Solution:</b> Maintain proper fertilization and remove infected leaves.',
+    'Healthy': 'No disease detected.<br><b>Solution:</b> Maintain field hygiene and monitor regularly.',
+    'Leaf Blast': 'Caused by fungus; diamond-shaped lesions.<br><b>Solution:</b> Proper spacing, nitrogen management, and fungicide application.',
+    'Leaf Scald': 'Caused by fungus; pale lesions along edges.<br><b>Solution:</b> Crop rotation, balanced fertilization, and fungicides.',
+    'Narrow Brown Spot': 'Caused by fungus; narrow brown lesions.<br><b>Solution:</b> Maintain soil moisture, avoid excess nitrogen.'
 }
 
 # -----------------------------
-# Routes
+# Home Page (Upload)
 # -----------------------------
 @app.route('/')
 def index():
     return '''
-    <html>
+    <!DOCTYPE html>
+    <html lang="en">
     <head>
-        <title>Smart Agriculture: Rice Leaf Disease Detection</title>
+        <meta charset="UTF-8">
+        <title>Smart Agriculture: A Hybrid AI System for Early Detection of Rice Leaf Disease</title>
         <style>
             body {
-                font-family: 'Segoe UI', sans-serif;
-                background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+                font-family: 'Poppins', sans-serif;
+                background: linear-gradient(135deg, #f1f8e9, #dcedc8);
                 display: flex;
-                flex-direction: column;
-                align-items: center;
                 justify-content: center;
+                align-items: center;
                 height: 100vh;
                 margin: 0;
             }
+            .container {
+                background: #fff;
+                padding: 50px 60px;
+                border-radius: 20px;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                text-align: center;
+                width: 450px;
+            }
             h1 {
-                color: #2e7d32;
-                font-size: 28px;
-                text-align: center;
+                font-size: 22px;
+                margin-bottom: 25px;
+                color: #1b5e20;
             }
-            form {
-                background: white;
-                padding: 30px;
-                border-radius: 15px;
-                box-shadow: 0 0 15px rgba(0,0,0,0.2);
-                text-align: center;
-                width: 320px;
+            input[type="file"] {
+                display: none;
             }
-            input[type=file] {
-                padding: 10px;
-                margin: 15px 0;
-                border-radius: 8px;
-                border: 1px solid #ccc;
-                width: 100%;
-            }
-            input[type=submit] {
-                background-color: #43a047;
-                color: white;
-                border: none;
-                padding: 12px 25px;
-                border-radius: 8px;
+            label {
+                display: inline-block;
+                padding: 15px 30px;
+                background: #43a047;
+                color: #fff;
+                border-radius: 10px;
                 cursor: pointer;
                 font-size: 16px;
+                transition: 0.3s;
             }
-            input[type=submit]:hover {
-                background-color: #2e7d32;
+            label:hover {
+                background: #2e7d32;
+            }
+            input[type="submit"] {
+                padding: 15px 35px;
+                background: #1b5e20;
+                color: #fff;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: 0.3s;
+                margin-top: 20px;
+            }
+            input[type="submit"]:hover {
+                background: #2e7d32;
+            }
+            p.note {
+                margin-top: 20px;
+                color: #555;
+                font-size: 14px;
+            }
+            #file-name {
+                margin-top: 15px;
+                color: #333;
+                font-size: 15px;
+            }
+            #preview {
+                margin-top: 20px;
+                max-width: 100%;
+                border-radius: 12px;
+                display: none;
             }
         </style>
     </head>
     <body>
-        <h1>🌾 Smart Agriculture:<br>A Hybrid AI System for Early Detection of Rice Leaf Disease</h1>
-        <form method="POST" action="/predict" enctype="multipart/form-data">
-            <input type="file" name="file" accept="image/*" required><br>
-            <input type="submit" value="Upload & Predict">
-        </form>
+        <div class="container">
+            <h1>🌾 Smart Agriculture: A Hybrid AI System for Early Detection of Rice Leaf Disease</h1>
+            <form action="/predict" method="POST" enctype="multipart/form-data">
+                <label for="file">Choose Leaf Image</label>
+                <input type="file" id="file" name="file" accept="image/*" required>
+                <div id="file-name"></div>
+                <img id="preview" alt="Image Preview">
+                <br>
+                <input type="submit" value="Predict">
+            </form>
+            <p class="note">Supported formats: JPEG, PNG</p>
+        </div>
+
+        <script>
+            const fileInput = document.getElementById('file');
+            const fileNameDisplay = document.getElementById('file-name');
+            const preview = document.getElementById('preview');
+
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    fileNameDisplay.textContent = `Selected file: ${file.name}`;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    fileNameDisplay.textContent = '';
+                    preview.style.display = 'none';
+                }
+            });
+        </script>
     </body>
     </html>
     '''
 
+# -----------------------------
+# Prediction Route
+# -----------------------------
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'file' not in request.files:
@@ -125,9 +185,15 @@ def predict():
     img_array = np.expand_dims(img_array, axis=0)
 
     predictions = model.predict(img_array)[0]
+    max_prob = np.max(predictions)
     predicted_index = np.argmax(predictions)
-    predicted_class = class_names[predicted_index]
-    reason = disease_reasons[predicted_class]
+
+    if max_prob < 0.7:
+        predicted_class = "Not a Leaf / Unknown"
+        reason = "The uploaded image doesn't resemble a rice leaf. Please upload a clear image of a rice leaf."
+    else:
+        predicted_class = class_names[predicted_index]
+        reason = disease_reasons[predicted_class]
 
     del model
 
@@ -136,30 +202,15 @@ def predict():
     <head>
         <style>
             body {{
-                font-family: 'Segoe UI', sans-serif;
+                font-family: 'Poppins', sans-serif;
                 background: linear-gradient(135deg, #f1f8e9, #dcedc8);
                 text-align: center;
                 padding: 40px;
             }}
-            h2 {{
-                color: #1b5e20;
-                font-size: 26px;
-            }}
-            h3 {{
-                color: #2e7d32;
-                font-size: 22px;
-            }}
-            p {{
-                font-size: 18px;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-            }}
-            img {{
-                margin-top: 20px;
-                border-radius: 10px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            }}
+            h2 {{ color: #1b5e20; font-size: 26px; }}
+            h3 {{ color: #2e7d32; font-size: 22px; }}
+            p {{ font-size: 18px; color: #333; max-width: 600px; margin: 0 auto; }}
+            img {{ margin-top: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.2); }}
             a {{
                 display: inline-block;
                 margin-top: 30px;
@@ -169,9 +220,7 @@ def predict():
                 border-radius: 8px;
                 text-decoration: none;
             }}
-            a:hover {{
-                background-color: #2e7d32;
-            }}
+            a:hover {{ background-color: #2e7d32; }}
         </style>
     </head>
     <body>
@@ -185,7 +234,7 @@ def predict():
     """
 
 # -----------------------------
-# Render/Local Port Setup
+# Render-specific Port Setup
 # -----------------------------
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
