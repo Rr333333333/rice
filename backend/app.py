@@ -48,58 +48,145 @@ disease_reasons = {
 @app.route('/')
 def index():
     return '''
-    <h2>🌾 Rice Leaf Disease Detection</h2>
-    <form method="POST" action="/predict" enctype="multipart/form-data">
-        <input type="file" name="file" accept="image/*" required>
-        <br><br>
-        <input type="submit" value="Upload & Predict">
-    </form>
+    <html>
+    <head>
+        <title>Smart Agriculture: Rice Leaf Disease Detection</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', sans-serif;
+                background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+            }
+            h1 {
+                color: #2e7d32;
+                font-size: 28px;
+                text-align: center;
+            }
+            form {
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 0 15px rgba(0,0,0,0.2);
+                text-align: center;
+                width: 320px;
+            }
+            input[type=file] {
+                padding: 10px;
+                margin: 15px 0;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                width: 100%;
+            }
+            input[type=submit] {
+                background-color: #43a047;
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+            input[type=submit]:hover {
+                background-color: #2e7d32;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>🌾 Smart Agriculture:<br>A Hybrid AI System for Early Detection of Rice Leaf Disease</h1>
+        <form method="POST" action="/predict" enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*" required><br>
+            <input type="submit" value="Upload & Predict">
+        </form>
+    </body>
+    </html>
     '''
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Validate file
     if 'file' not in request.files:
-        return redirect(request.url)
+        return redirect('/')
     file = request.files['file']
     if file.filename == '':
-        return redirect(request.url)
+        return redirect('/')
 
-    # Save uploaded image
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
     file.save(filepath)
 
-    # Lazy load model here to reduce memory usage
     from tensorflow.keras.models import load_model
     model = load_model(MODEL_PATH)
 
-    # Preprocess image
     img = Image.open(filepath).resize((128, 128))
     img_array = img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
-    # Predict
     predictions = model.predict(img_array)[0]
     predicted_index = np.argmax(predictions)
     predicted_class = class_names[predicted_index]
     reason = disease_reasons[predicted_class]
 
-    # Free up memory
     del model
 
-    # Return response
     return f"""
-    <h3>Prediction: {predicted_class}</h3>
-    <p>{reason}</p>
-    <img src="/{filepath}" width="250">
-    <br><br>
-    <a href="/">🔙 Go Back</a>
+    <html>
+    <head>
+        <style>
+            body {{
+                font-family: 'Segoe UI', sans-serif;
+                background: linear-gradient(135deg, #f1f8e9, #dcedc8);
+                text-align: center;
+                padding: 40px;
+            }}
+            h2 {{
+                color: #1b5e20;
+                font-size: 26px;
+            }}
+            h3 {{
+                color: #2e7d32;
+                font-size: 22px;
+            }}
+            p {{
+                font-size: 18px;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+            }}
+            img {{
+                margin-top: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            }}
+            a {{
+                display: inline-block;
+                margin-top: 30px;
+                padding: 10px 20px;
+                background-color: #43a047;
+                color: white;
+                border-radius: 8px;
+                text-decoration: none;
+            }}
+            a:hover {{
+                background-color: #2e7d32;
+            }}
+        </style>
+    </head>
+    <body>
+        <h2>Prediction Result</h2>
+        <h3>{predicted_class}</h3>
+        <p>{reason}</p>
+        <img src="/{filepath}" width="300"><br>
+        <a href="/">🔙 Go Back</a>
+    </body>
+    </html>
     """
 
 # -----------------------------
-# Render-specific port setup
+# Render/Local Port Setup
 # -----------------------------
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
