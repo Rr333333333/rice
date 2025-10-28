@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediction Result</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f8f9fa; margin:0; padding:0;}
+        .container {
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 700px;
+        }
+        h1 { color: #333; }
+        img { max-width: 100%; border-radius: 10px; margin: 20px 0; }
+        .prediction { font-size: 24px; font-weight: bold; color: #4CAF50; margin: 10px 0; }
+        .reason { color: #555; font-size: 16px; margin-bottom: 20px; white-space: pre-wrap; }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button, a {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover, a:hover { background: #45a049; }
+        canvas { margin-top: 20px; max-width: 100%; }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: white;
+            }
+            button, a {
+                display: none !important;
+            }
+            .container {
+                margin: 0;
+                padding: 20px;
+                border-radius: 0;
+                box-shadow: none;
+                width: 100%;
+            }
+            h1 { font-size: 24px; }
+            .prediction { font-size: 20px; }
+            .reason { font-size: 14px; }
+            table { width: 100%; page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            img { max-width: 80%; height: auto; margin-bottom: 20px; }
+            canvas { max-width: 100%; height: auto; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Prediction Result</h1>
+    <img src="{{ image_path }}" alt="Uploaded Image">
+    <div class="prediction">Predicted Disease: {{ prediction }}</div>
+    <div class="reason">{{ reason }}</div>
+
+    <canvas id="confidenceChart" width="400" height="200"></canvas>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Disease</th>
+                <th>Confidence (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cls, conf in classes_confidences %}
+            <tr>
+                <td>{{ cls }}</td>
+                <td>{{ conf | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button onclick="speakResult()">🔊 Hear Result</button>
+    <a href="#" onclick="window.print()">🖨️ Print Result</a>
+    <br>
+    <a href="/">Predict Another</a>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Chart
+    const ctx = document.getElementById('confidenceChart').getContext('2d');
+    const chartData = {
+        labels: {{ classes | tojson }},
+        datasets: [{
+            label: 'Confidence (%)',
+            data: {{ confidences | tojson }},
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+    new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+            scales: { y: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Voice output
+    const message = `The predicted disease is {{ prediction }}. Reason: {{ reason }}.`;
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+
+    // Speak automatically
+    speechSynthesis.speak(utterance);
+
+    // Speak on button click
+    window.speakResult = function() {
+        speechSynthesis.speak(utterance);
+    }
+});
+</script>
+</body>
+</html>
