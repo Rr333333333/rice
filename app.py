@@ -1,18 +1,35 @@
 from flask import Flask, render_template, request, redirect, url_for
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 from tensorflow.keras.utils import img_to_array
 from PIL import Image
 import numpy as np
 import os
+import gdown  # to download from Google Drive
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Load model
-model = load_model("model/rice_leaf_model.h5")
+# -----------------------------
+# 1. Download model if not present
+# -----------------------------
+MODEL_PATH = "model/rice_leaf_model.h5"
+DRIVE_URL = "https://drive.google.com/uc?id=1bXm5RthubHsGGelEIca3ZlAmh1UfE02v"  # your file ID
 
-# Classes and disease reasons with solutions
+if not os.path.exists(MODEL_PATH):
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+    print("Downloading model from Google Drive...")
+    gdown.download(DRIVE_URL, MODEL_PATH, quiet=False)
+    print("Model downloaded successfully!")
+
+# -----------------------------
+# 2. Load model
+# -----------------------------
+model = load_model(MODEL_PATH)
+
+# -----------------------------
+# 3. Define classes and reasons
+# -----------------------------
 class_names = ['Bacterial Blight', 'Brown Spot', 'Healthy', 'Leaf Blast', 'Leaf Scald', 'Narrow Brown Spot']
 
 disease_reasons = {
@@ -24,6 +41,9 @@ disease_reasons = {
     'Narrow Brown Spot': 'Caused by fungus B; narrow brown lesions appear.\nSolution: Maintain soil moisture, avoid excessive nitrogen, and apply fungicides if needed.'
 }
 
+# -----------------------------
+# 4. Routes
+# -----------------------------
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -40,28 +60,10 @@ def predict():
     file.save(filepath)
 
     # Load and preprocess image
-    img = Image.open(filepath).resize((128,128))  # match model input size
+    img = Image.open(filepath).resize((128,128))
     img_array = img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
     # Prediction
     predictions = model.predict(img_array)[0]
-    predicted_index = np.argmax(predictions)
-    predicted_class = class_names[predicted_index]
-    reason = disease_reasons[predicted_class]
-
-    # Create list of tuples for table (class, confidence)
-    classes_confidences = list(zip(class_names, (predictions*100).tolist()))
-
-    return render_template(
-        'result.html',
-        prediction=predicted_class,
-        reason=reason,
-        image_path=url_for('static', filename='uploads/' + file.filename),
-        classes_confidences=classes_confidences,
-        classes=class_names,
-        confidences=(predictions*100).tolist()
-    )
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    predicted_index = np.argmax(predictions)_
